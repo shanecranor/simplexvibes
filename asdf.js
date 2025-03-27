@@ -220,6 +220,9 @@ const mod2Slider = document.getElementById("mod2")
 const baseModSlider = document.getElementById("baseMod")
 const modMultSlider = document.getElementById("modMult")
 const colorToggleCheckbox = document.getElementById("colorToggle")
+// New fine-tune slider for mod1.
+const mod1FineSlider = document.getElementById("mod1Fine")
+const mod1FineValue = document.getElementById("mod1FineValue")
 
 // Store parameters.
 let params = {
@@ -237,6 +240,7 @@ let params = {
   baseMod: parseFloat(baseModSlider.value),
   modMult: parseFloat(modMultSlider.value),
   colorToggle: colorToggleCheckbox.checked, // added color toggle state
+  mod1Fine: parseFloat(mod1FineSlider.value), // new fine adjustment parameter
 }
 
 // Update parameters on slider input and update displays.
@@ -278,7 +282,11 @@ lacunaritySlider.addEventListener("input", (e) => {
 })
 mod1Slider.addEventListener("input", (e) => {
   params.mod1 = parseFloat(e.target.value)
-  updateDisplay("mod1Value", params.mod1)
+  updateDisplay("mod1Value", params.mod1 + params.mod1Fine)
+})
+mod1FineSlider.addEventListener("input", (e) => {
+  params.mod1Fine = parseFloat(e.target.value)
+  updateDisplay("mod1Value", params.mod1 + params.mod1Fine)
 })
 mod2Slider.addEventListener("input", (e) => {
   params.mod2 = parseFloat(e.target.value)
@@ -321,6 +329,7 @@ saveStateButton.addEventListener("click", () => {
     baseMod: params.baseMod,
     modMult: params.modMult,
     colorToggle: params.colorToggle, // added color toggle state
+    mod1Fine: params.mod1Fine, // new fine adjustment parameter
   }
   const json = JSON.stringify(state)
   navigator.clipboard
@@ -355,6 +364,7 @@ loadStateButton.addEventListener("click", () => {
         baseModSlider.value = state.baseMod
         modMultSlider.value = state.modMult
         colorToggleCheckbox.checked = state.colorToggle // update color toggle
+        mod1FineSlider.value = state.mod1Fine // new fine adjustment parameter
 
         // Update parameters.
         params.scale = parseFloat(state.scale)
@@ -371,6 +381,7 @@ loadStateButton.addEventListener("click", () => {
         params.baseMod = parseFloat(state.baseMod)
         params.modMult = parseFloat(state.modMult)
         params.colorToggle = state.colorToggle // update color toggle
+        params.mod1Fine = parseFloat(state.mod1Fine) // new fine adjustment parameter
 
         // Update displays.
         updateDisplay("scaleValue", state.scale)
@@ -387,6 +398,7 @@ loadStateButton.addEventListener("click", () => {
         updateDisplay("baseModValue", state.baseMod)
         updateDisplay("modMultValue", state.modMult)
         updateDisplay("colorToggleValue", state.colorToggle) // update color toggle display
+        updateDisplay("mod1FineValue", state.mod1Fine) // new fine adjustment parameter display
 
         alert("State loaded from clipboard.")
       } catch (err) {
@@ -420,7 +432,8 @@ function render() {
   gl.uniform1i(uOctavesLoc, params.octaves)
   gl.uniform1f(uPersistenceLoc, params.persistence)
   gl.uniform1f(uLacunarityLoc, params.lacunarity)
-  gl.uniform1f(uMod1Loc, params.mod1)
+  // Update uMod1 by adding the fine adjustment.
+  gl.uniform1f(uMod1Loc, params.mod1 + params.mod1Fine)
   gl.uniform1f(uMod2Loc, params.mod2)
   gl.uniform1f(uBaseModLoc, params.baseMod)
   gl.uniform1f(uModMultLoc, params.modMult)

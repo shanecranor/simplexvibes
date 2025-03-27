@@ -6,6 +6,7 @@
       WebGL Simplex Noise with Extra Controls, FPS, Fine Mod Parameters &
       Save/Load State
     </title>
+    <link rel="stylesheet" href="reset.css" />
     <link rel="stylesheet" href="asdf.css" />
   </head>
   <body>
@@ -78,7 +79,7 @@
         <input
           type="range"
           id="mod1"
-          min="0.0001"
+          min="0.0"
           max="289"
           step="0.00001"
           value="289" />
@@ -90,9 +91,10 @@
           type="range"
           id="mod1Fine"
           min="0.0000"
-          max="3.0"
-          step="0.000001"
+          max="0.005"
+          step="0.00000000001"
           value="289" />
+        <span class="value" id="mod1FineValue">289</span>
       </label>
       <label>
         v3_mod_2:
@@ -134,8 +136,18 @@
       <button id="saveState">Save State</button>
       <button id="loadState">Load State</button>
     </div>
+    <button id="toggleControls">Toggle Controls</button>
     <div id="fpsCounter">FPS: 0</div>
     <canvas id="glCanvas"></canvas>
     <script src="asdf.js"></script>
+    <script>
+      document
+        .getElementById("toggleControls")
+        .addEventListener("click", () => {
+          const controls = document.getElementById("controls")
+          controls.style.display =
+            controls.style.display === "none" ? "grid" : "none"
+        })
+    </script>
   </body>
 </html>
