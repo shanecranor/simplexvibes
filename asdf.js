@@ -47,6 +47,7 @@ const fragmentShaderSource = `
   uniform float uMod2;
   uniform float uBaseMod;
   uniform float uModMult;
+  uniform bool uUseColor; // added for color toggle
   varying vec2 vUV;
   
   // For vec3 noise using v3_mod_1 and v3_mod_2.
@@ -144,7 +145,11 @@ const fragmentShaderSource = `
     float n = fractalNoise(pos, uTime * uSpeed, uOctaves);
     float c = n * 0.5 + 0.5;
     c = clamp((c - 0.5) * uContrast + 0.5 + (uBrightness / 255.0), 0.0, 1.0);
-    gl_FragColor = vec4(vec3(c), 1.0);
+    if(uUseColor){
+      gl_FragColor = vec4(c, c * 0.5, 1.0 - c, 1.0);
+    } else {
+      gl_FragColor = vec4(vec3(c), 1.0);
+    }
   }
 `
 
@@ -198,6 +203,7 @@ const uMod1Loc = gl.getUniformLocation(program, "uMod1")
 const uMod2Loc = gl.getUniformLocation(program, "uMod2")
 const uBaseModLoc = gl.getUniformLocation(program, "uBaseMod")
 const uModMultLoc = gl.getUniformLocation(program, "uModMult")
+const uUseColorLoc = gl.getUniformLocation(program, "uUseColor")
 
 // Grab slider elements.
 const scaleSlider = document.getElementById("scale")
@@ -213,6 +219,7 @@ const mod1Slider = document.getElementById("mod1")
 const mod2Slider = document.getElementById("mod2")
 const baseModSlider = document.getElementById("baseMod")
 const modMultSlider = document.getElementById("modMult")
+const colorToggleCheckbox = document.getElementById("colorToggle")
 
 // Store parameters.
 let params = {
@@ -229,6 +236,7 @@ let params = {
   mod2: parseFloat(mod2Slider.value),
   baseMod: parseFloat(baseModSlider.value),
   modMult: parseFloat(modMultSlider.value),
+  colorToggle: colorToggleCheckbox.checked, // added color toggle state
 }
 
 // Update parameters on slider input and update displays.
@@ -284,6 +292,10 @@ modMultSlider.addEventListener("input", (e) => {
   params.modMult = parseFloat(e.target.value)
   updateDisplay("modMultValue", params.modMult)
 })
+colorToggleCheckbox.addEventListener("change", (e) => {
+  params.colorToggle = e.target.checked
+  updateDisplay("colorToggleValue", params.colorToggle)
+})
 
 // --- Save/Load State from Clipboard ---
 const controlsDiv = document.getElementById("controls")
@@ -308,6 +320,7 @@ saveStateButton.addEventListener("click", () => {
     mod2: params.mod2,
     baseMod: params.baseMod,
     modMult: params.modMult,
+    colorToggle: params.colorToggle, // added color toggle state
   }
   const json = JSON.stringify(state)
   navigator.clipboard
@@ -327,7 +340,7 @@ loadStateButton.addEventListener("click", () => {
     .then((text) => {
       try {
         const state = JSON.parse(text)
-        // Update slider values.
+        // Update slider and checkbox values.
         scaleSlider.value = state.scale
         speedSlider.value = state.speed
         brightnessSlider.value = state.brightness
@@ -341,8 +354,9 @@ loadStateButton.addEventListener("click", () => {
         mod2Slider.value = state.mod2
         baseModSlider.value = state.baseMod
         modMultSlider.value = state.modMult
+        colorToggleCheckbox.checked = state.colorToggle // update color toggle
 
-        // Update parameters and display values.
+        // Update parameters.
         params.scale = parseFloat(state.scale)
         params.speed = parseFloat(state.speed)
         params.brightness = parseFloat(state.brightness)
@@ -356,7 +370,9 @@ loadStateButton.addEventListener("click", () => {
         params.mod2 = parseFloat(state.mod2)
         params.baseMod = parseFloat(state.baseMod)
         params.modMult = parseFloat(state.modMult)
+        params.colorToggle = state.colorToggle // update color toggle
 
+        // Update displays.
         updateDisplay("scaleValue", state.scale)
         updateDisplay("speedValue", state.speed)
         updateDisplay("brightnessValue", state.brightness)
@@ -370,6 +386,7 @@ loadStateButton.addEventListener("click", () => {
         updateDisplay("mod2Value", state.mod2)
         updateDisplay("baseModValue", state.baseMod)
         updateDisplay("modMultValue", state.modMult)
+        updateDisplay("colorToggleValue", state.colorToggle) // update color toggle display
 
         alert("State loaded from clipboard.")
       } catch (err) {
@@ -407,6 +424,7 @@ function render() {
   gl.uniform1f(uMod2Loc, params.mod2)
   gl.uniform1f(uBaseModLoc, params.baseMod)
   gl.uniform1f(uModMultLoc, params.modMult)
+  gl.uniform1i(uUseColorLoc, params.colorToggle ? 1 : 0) // pass color toggle state
   gl.uniform1f(uTimeLoc, currentTime)
 
   gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4)
