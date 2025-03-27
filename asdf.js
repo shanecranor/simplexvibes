@@ -144,9 +144,11 @@ const fragmentShaderSource = `
     vec2 pos = (gl_FragCoord.xy + vec2(uOffsetX, uOffsetY)) / uScale;
     float n = fractalNoise(pos, uTime * uSpeed, uOctaves);
     float c = n * 0.5 + 0.5;
-    c = clamp((c - 0.5) * uContrast + 0.5 + (uBrightness / 255.0), 0.0, 1.0);
+    c = (c - 0.5) * uContrast + 0.5 + (uBrightness / 255.0), 0.0;
     if(uUseColor){
-      gl_FragColor = vec4(c, c * 0.5, 1.0 - c, 1.0);
+      // Compute color and wrap overflow with modulus.
+      vec3 color = mod(vec3(c, c * 0.5, 1.0 - c), 1.0);
+      gl_FragColor = vec4(color, 1.0);
     } else {
       gl_FragColor = vec4(vec3(c), 1.0);
     }
